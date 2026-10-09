@@ -28,10 +28,10 @@
     if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
     if (!text) return { pairs: [] };
     if (text.charCodeAt(0) === 0 || text.slice(0, 18) === 'AutoCAD Binary DXF') {
-      return { error: 'Bu DXF ikili. ASCII olarak kaydet.' };
+      return { error: 'binary' };
     }
     var nul = text.indexOf('\0');
-    if (nul !== -1 && nul < 80) return { error: 'Bu DXF ikili. ASCII olarak kaydet.' };
+    if (nul !== -1 && nul < 80) return { error: 'binary' };
     text = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
     var lines = text.split('\n');
     while (lines.length && lines[lines.length - 1].trim() === '') lines.pop();
@@ -43,9 +43,9 @@
         i++;
         continue;
       }
-      if (i + 1 >= lines.length) return { error: 'DXF okunamadı.' };
+      if (i + 1 >= lines.length) return { error: 'parse' };
       var codeLine = lines[i].trim();
-      if (!/^\d+$/.test(codeLine)) return { error: 'DXF okunamadı.' };
+      if (!/^\d+$/.test(codeLine)) return { error: 'parse' };
       pairs.push({ code: Number(codeLine), value: lines[i + 1].trim() });
       i += 2;
     }

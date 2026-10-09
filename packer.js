@@ -12,10 +12,12 @@
     return Math.round(mm * UNIT);
   }
 
-  function readNumber(token) {
-    if (token == null) return null;
-    var s = String(token).trim().replace(/\s/g, '');
-    if (!s) return null;
+  function finishNumber(s) {
+    var n = Number(s);
+    return Number.isFinite(n) ? n : NaN;
+  }
+
+  function readTurkish(s) {
     if (s.indexOf(',') !== -1 && s.indexOf('.') !== -1) {
       if (!/^\d{1,3}(\.\d{3})+(,\d+)?$/.test(s)) return NaN;
       s = s.replace(/\./g, '').replace(',', '.');
@@ -27,24 +29,45 @@
     } else if (!/^\d+(\.\d+)?$/.test(s)) {
       return NaN;
     }
-    var n = Number(s);
-    return Number.isFinite(n) ? n : NaN;
+    return finishNumber(s);
   }
 
-  function classify(token) {
+  function readEnglish(s) {
+    if (s.indexOf(',') !== -1 && s.indexOf('.') !== -1) {
+      if (!/^\d{1,3}(,\d{3})+(\.\d+)?$/.test(s)) return NaN;
+      s = s.replace(/,/g, '');
+    } else if (s.indexOf(',') !== -1) {
+      if (/^\d{1,3}(,\d{3})+$/.test(s)) s = s.replace(/,/g, '');
+      else if (/^\d+(,\d+)?$/.test(s)) s = s.replace(',', '.');
+      else return NaN;
+    } else if (!/^\d+(\.\d+)?$/.test(s)) {
+      return NaN;
+    }
+    return finishNumber(s);
+  }
+
+  function readNumber(token, locale) {
+    if (token == null) return null;
+    var s = String(token).trim().replace(/\s/g, '');
+    if (!s) return null;
+    if (locale === 'en') return readEnglish(s);
+    return readTurkish(s);
+  }
+
+  function classify(token, locale) {
     if (/[A-Za-zÀ-ÿĞğÜüŞşİıÖöÇç]/.test(token)) return { type: 'word', value: token };
-    var n = readNumber(token);
+    var n = readNumber(token, locale);
     if (n == null || Number.isNaN(n)) return { type: 'bad' };
     return { type: 'num', value: n };
   }
 
-  function parseLine(raw) {
+  function parseLine(raw, locale) {
     var tokens = raw.trim().split(/[×xX*\s]+/).filter(Boolean);
     if (!tokens.length) return null;
     var words = [];
     var nums = [];
     for (var i = 0; i < tokens.length; i++) {
-      var c = classify(tokens[i]);
+      var c = classify(tokens[i], locale);
       if (c.type === 'bad') return null;
       if (c.type === 'word') words.push(c.value);
       else nums.push(c.value);
@@ -67,13 +90,13 @@
     return { name: words.join(' '), width: width, height: height, qty: qty };
   }
 
-  function parsePartList(text) {
+  function parsePartList(text, locale) {
     var parts = [];
     var errors = [];
     String(text).split(/\r?\n/).forEach(function (line, index) {
       var raw = line.trim();
       if (!raw || raw.charAt(0) === '#' || raw.indexOf('//') === 0) return;
-      var parsed = parseLine(raw);
+      var parsed = parseLine(raw, locale);
       if (!parsed) errors.push({ line: index + 1, text: raw });
       else parts.push(parsed);
     });

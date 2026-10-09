@@ -17,6 +17,7 @@
   ];
 
   var state = {
+    lang: storedLang(),
     result: null,
     dirty: false,
     zoom: 1,
@@ -36,19 +37,23 @@
   var partList = document.getElementById('partList');
   var stage = document.getElementById('stage');
 
+  function groupSep() { return state.lang === 'tr' ? '.' : ','; }
+
+  function decSep() { return state.lang === 'tr' ? ',' : '.'; }
+
   function fmtMm(n) {
     var sign = n < 0 ? '-' : '';
     var v = Math.abs(Math.round(n * 1000) / 1000);
     var bits = String(v).split('.');
-    bits[0] = bits[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-    return sign + bits[0] + (bits[1] ? ',' + bits[1] : '');
+    bits[0] = bits[0].replace(/\B(?=(\d{3})+(?!\d))/g, groupSep());
+    return sign + bits[0] + (bits[1] ? decSep() + bits[1] : '');
   }
 
   function fmtFixed(n, digits) {
     var sign = n < 0 ? '-' : '';
     var parts = Math.abs(n).toFixed(digits).split('.');
-    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-    return sign + parts[0] + (parts[1] ? ',' + parts[1] : '');
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, groupSep());
+    return sign + parts[0] + (parts[1] ? decSep() + parts[1] : '');
   }
 
   function fmtArea(mm2) {
@@ -60,43 +65,362 @@
   function fmtPct(ratio) {
     var v = Math.round(ratio * 1000) / 10;
     if (Number.isInteger(v)) return String(v) + '%';
-    return v.toFixed(1).replace('.', ',') + '%';
+    var text = v.toFixed(1);
+    return (state.lang === 'tr' ? text.replace('.', ',') : text) + '%';
   }
 
   function xl(n) {
-    return String(Math.round(n * 1000) / 1000).replace('.', ',');
+    var text = String(Math.round(n * 1000) / 1000);
+    return state.lang === 'tr' ? text.replace('.', ',') : text;
   }
 
   function setStatus(text) {
     document.getElementById('status').textContent = text;
   }
 
+  function storedLang() {
+    try {
+      var saved = localStorage.getItem('sheet-lang');
+      if (saved === 'en' || saved === 'tr') return saved;
+    } catch (err) {}
+    return 'en';
+  }
+
+  var COPY = {
+    en: {
+      title: 'Sheet nesting',
+      lede: 'Places rectangular parts on a sheet, with a kerf gap between them.',
+      sheet: 'Sheet',
+      parts: 'Parts',
+      kerfHead: 'Kerf',
+      sheetW: 'Width (mm)',
+      sheetH: 'Height (mm)',
+      colName: 'Name',
+      colW: 'W',
+      colH: 'H',
+      colQty: 'Qty',
+      addRow: 'Add row',
+      openDxf: 'Open DXF',
+      dxfTitle: 'Reads closed rectangular outlines.',
+      pasteSummary: 'Paste a list',
+      pasteHint: 'One part per line.',
+      pasteAdd: 'Add',
+      pastePh: '150 300\n150x300x4\nCover 820 2100 2',
+      kerfAria: 'Kerf, mm',
+      rotate: 'Allow 90°',
+      modeFree: 'Free',
+      modeGuillotine: 'Guillotine',
+      optimize: 'Optimize',
+      statSheets: 'Sheets',
+      statYield: 'Yield',
+      statWaste: 'Offcut',
+      fine: 'Fewer sheets is the aim. The result may not be the best possible.',
+      statusIdle: 'Enter the parts. Choose the kerf. Optimize.',
+      zoomOut: 'Zoom out',
+      zoomFit: 'Fit',
+      zoomIn: 'Zoom in',
+      replay: 'Replay',
+      print: 'Print',
+      saveSvg: 'Download SVG',
+      copyList: 'Copy for Excel',
+      copied: 'Copied',
+      copyFail: 'Could not copy',
+      stale: 'Result is old. Optimize again.',
+      phName: 'name',
+      phW: 'w',
+      phH: 'h',
+      del: 'Remove',
+      sheetWBad: 'Sheet width must be a number greater than zero.',
+      sheetHBad: 'Sheet height must be a number greater than zero.',
+      sheetLimit: 'Sheet size must be under 50 m.',
+      kerfBad: 'Kerf must be zero or greater.',
+      rowW: 'Row {n}: width must be a number.',
+      rowH: 'Row {n}: height must be a number.',
+      rowPos: 'Row {n}: width and height must be greater than zero.',
+      partLimit: 'Part size must be under 50 m.',
+      rowQty: 'Row {n}: quantity must be a whole number of 1 or more.',
+      qtyCap: 'At most 500 per row.',
+      countCap: 'At most 1,500 parts. Split the quantity.',
+      needParts: 'Enter a part size.',
+      modeFreeWord: 'free',
+      modeGuillotineWord: 'guillotine',
+      runLine: '{sheet} mm · kerf {kerf} mm · {mode} · {n} parts',
+      summary: '{n} parts · {area}',
+      kerfMissing: 'Enter the kerf.',
+      flush: 'Parts sit flush.',
+      gap: 'A {kerf} mm gap stays between parts.',
+      guillotineHint: 'Cuts run through.',
+      freeHint: 'Free nesting leaves less offcut.',
+      calculating: 'Working',
+      packFail: 'Could not place the parts.',
+      placing: 'Placing · {i}/{n}',
+      placed: 'Placed',
+      placedSome: 'Placed. Some parts do not fit.',
+      noneFit: 'Some parts do not fit.',
+      countSuffix: ', {n} pcs',
+      rotateHint: '{name} {size}{count} does not fit. Turn on 90°.',
+      noFit: '{name} {size}{count} does not fit. Sheet is {sheet}. Split the part or use a larger sheet.',
+      moreTypes: 'and {n} more.',
+      ghostBad: 'Enter the sheet size. The drawing stays here.',
+      ghostWait: 'Parts land here after you nest.',
+      sheetN: 'Sheet {n}',
+      sheetMeta: '{size} mm · {n} parts · {pct} · corner at top left',
+      pcs: '{n} pcs',
+      cutCaption: 'Cut list. X and Y are millimetres from the top-left corner.',
+      cutSheet: 'Sheet',
+      cutPart: 'Part',
+      cutSize: 'Size',
+      cutTurn: 'Turn',
+      turnNo: '—',
+      detailGap: 'Gap drawn large. The sheet is to scale.',
+      tsvHead: 'Sheet\tPart\tW\tH\tX\tY\tTurn',
+      tsvMiss: 'Does not fit',
+      tsvSheet: 'Sheet {size} mm',
+      tsvKerf: 'Kerf {kerf} mm',
+      svgNote: 'Kerf {kerf} mm. Sizes in mm. Corner at top left.',
+      svgFile: 'sheet-nesting.svg',
+      titleResult: '{n} sheets · {pct} · Sheet nesting',
+      dxfBinary: 'This DXF is binary. Save it as ASCII.',
+      dxfBad: 'Could not read the DXF.',
+      dxfNone: 'No closed rectangle in the DXF.',
+      dxfSkip: '{n} shapes are not rectangles. Left out.',
+      dxfGot: '{n} parts came in. {m} sizes.',
+      dxfAssume: 'Unit taken as mm.',
+      dxfConverted: 'Unit was {unit}, converted to mm.',
+      unit_in: 'inch',
+      unit_ft: 'ft',
+      unit_cm: 'cm',
+      unit_m: 'm',
+      unit_yd: 'yd',
+      unit_um: 'micron',
+      unit_dm: 'dm',
+      unit_dam: 'dam',
+      lineBad: 'Line {n} was not read.',
+      lineNone: 'No line was read.',
+      lineSome: 'Line {n} was not read. The other lines were added.',
+      lineAdded: '{n} sizes added.'
+    },
+    tr: {
+      title: 'Levha yerleşimi',
+      lede: 'Dikdörtgen parçaları, aralarında bıçak payı bırakarak levhaya dizer.',
+      sheet: 'Levha',
+      parts: 'Parçalar',
+      kerfHead: 'Bıçak payı',
+      sheetW: 'En (mm)',
+      sheetH: 'Boy (mm)',
+      colName: 'Ad',
+      colW: 'En',
+      colH: 'Boy',
+      colQty: 'Adet',
+      addRow: 'Satır ekle',
+      openDxf: 'DXF aç',
+      dxfTitle: 'Kapalı dikdörtgen konturları okur.',
+      pasteSummary: 'Liste yapıştır',
+      pasteHint: 'Her satır bir çeşittir.',
+      pasteAdd: 'Ekle',
+      pastePh: '150 300\n150x300x4\nKapak 820 2100 2',
+      kerfAria: 'Bıçak payı, mm',
+      rotate: '90° döndür',
+      modeFree: 'Serbest',
+      modeGuillotine: 'Giyotin',
+      optimize: 'Optimize et',
+      statSheets: 'Levha',
+      statYield: 'Verim',
+      statWaste: 'Fire',
+      fine: 'Az levha hedeflenir. Sonuç kesin en iyi olmayabilir.',
+      statusIdle: 'Parçaları gir. Bıçak payını seç. Optimize et.',
+      zoomOut: 'Küçült',
+      zoomFit: 'Sığdır',
+      zoomIn: 'Büyüt',
+      replay: 'Oynat',
+      print: 'Yazdır',
+      saveSvg: 'SVG indir',
+      copyList: 'Excel\'e kopyala',
+      copied: 'Kopyalandı',
+      copyFail: 'Kopyalanamadı',
+      stale: 'Sonuç eski. Yeniden optimize et.',
+      phName: 'ad',
+      phW: 'en',
+      phH: 'boy',
+      del: 'Sil',
+      sheetWBad: 'Levha eni sıfırdan büyük bir sayı olmalı.',
+      sheetHBad: 'Levha boyu sıfırdan büyük bir sayı olmalı.',
+      sheetLimit: 'Levha ölçüsü 50 m altında olmalı.',
+      kerfBad: 'Bıçak payı sıfır veya daha büyük olmalı.',
+      rowW: '{n}. satırda en sayı olmalı.',
+      rowH: '{n}. satırda boy sayı olmalı.',
+      rowPos: '{n}. satırda en ve boy sıfırdan büyük olmalı.',
+      partLimit: 'Parça ölçüsü 50 m altında olmalı.',
+      rowQty: '{n}. satırda adet 1 veya daha büyük bir tam sayı olmalı.',
+      qtyCap: 'Bir satırda en fazla 500 adet.',
+      countCap: 'En fazla 1.500 parça. Adedi böl.',
+      needParts: 'Parça ölçüsü gir.',
+      modeFreeWord: 'serbest',
+      modeGuillotineWord: 'giyotin',
+      runLine: '{sheet} mm · pay {kerf} mm · {mode} · {n} parça',
+      summary: '{n} parça · {area}',
+      kerfMissing: 'Bıçak payını gir.',
+      flush: 'Parçalar bitişik.',
+      gap: 'Parçalar arasında {kerf} mm boşluk kalır.',
+      guillotineHint: 'Kesim boydan boya gider.',
+      freeHint: 'Serbest yerleşim fireyi azaltır.',
+      calculating: 'Hesaplanıyor',
+      packFail: 'Yerleşim hesaplanamadı.',
+      placing: 'Yerleşiyor · {i}/{n}',
+      placed: 'Yerleşti',
+      placedSome: 'Yerleşti. Sığmayan parça var.',
+      noneFit: 'Sığmayan parça var.',
+      countSuffix: ', {n} adet',
+      rotateHint: '{name} {size}{count} sığmıyor. 90° döndür seçeneğini aç.',
+      noFit: '{name} {size}{count} sığmıyor. Levha {sheet}. Parçayı böl veya levhayı büyüt.',
+      moreTypes: 've {n} çeşit daha.',
+      ghostBad: 'Levha ölçüsünü gir. Çizim burada durur.',
+      ghostWait: 'Parçalar optimize edilince buraya oturur.',
+      sheetN: 'Levha {n}',
+      sheetMeta: '{size} mm · {n} parça · {pct} · köşe sol üst',
+      pcs: '{n} adet',
+      cutCaption: 'Kesim listesi. X ve Y, levhanın sol üst köşesinden mm.',
+      cutSheet: 'Levha',
+      cutPart: 'Parça',
+      cutSize: 'Ölçü',
+      cutTurn: 'Dönüş',
+      turnNo: '—',
+      detailGap: 'Derz büyük çizildi. Levha ölçeklidir.',
+      tsvHead: 'Levha\tParça\tEn\tBoy\tX\tY\tDönüş',
+      tsvMiss: 'Sığmayan',
+      tsvSheet: 'Levha {size} mm',
+      tsvKerf: 'Bıçak payı {kerf} mm',
+      svgNote: 'Bıçak payı {kerf} mm. Ölçüler mm. Köşe sol üst.',
+      svgFile: 'levha-yerlesim.svg',
+      titleResult: '{n} levha · {pct} · Levha yerleşimi',
+      dxfBinary: 'Bu DXF ikili. ASCII olarak kaydet.',
+      dxfBad: 'DXF okunamadı.',
+      dxfNone: 'DXF içinde kapalı dikdörtgen yok.',
+      dxfSkip: '{n} şekil dikdörtgen değil. Eklenmedi.',
+      dxfGot: '{n} parça geldi. {m} çeşit.',
+      dxfAssume: 'Birim mm kabul edildi.',
+      dxfConverted: 'Birim {unit}, mm ye çevrildi.',
+      unit_in: 'inç',
+      unit_ft: 'fit',
+      unit_cm: 'cm',
+      unit_m: 'm',
+      unit_yd: 'yard',
+      unit_um: 'mikron',
+      unit_dm: 'dm',
+      unit_dam: 'dam',
+      lineBad: '{n}. satır okunmadı.',
+      lineNone: 'Satır okunmadı.',
+      lineSome: '{n}. satır okunmadı. Diğer satırlar eklendi.',
+      lineAdded: '{n} çeşit eklendi.'
+    }
+  };
+
+  function t(key, vars) {
+    var text = (COPY[state.lang] && COPY[state.lang][key]) || COPY.en[key] || key;
+    if (!vars) return text;
+    return text.replace(/\{(\w+)\}/g, function (_, name) {
+      return vars[name] == null ? '' : String(vars[name]);
+    });
+  }
+
+  function num(value) {
+    return SheetPacker.readNumber(value, state.lang);
+  }
+
+  function reformatNumbers(readLocale) {
+    function fix(input) {
+      if (!input || !String(input.value).trim()) return;
+      var value = SheetPacker.readNumber(input.value, readLocale);
+      if (typeof value === 'number') input.value = fmtMm(value);
+    }
+    fix(sheetW);
+    fix(sheetH);
+    fix(kerfInput);
+    partList.querySelectorAll('.part-row').forEach(function (row) {
+      fix(row.querySelector('[data-field="w"]'));
+      fix(row.querySelector('[data-field="h"]'));
+      fix(row.querySelector('[data-field="qty"]'));
+    });
+  }
+
+  function applyCopy() {
+    document.documentElement.lang = state.lang;
+    document.querySelectorAll('[data-i18n]').forEach(function (el) {
+      el.textContent = t(el.dataset.i18n);
+    });
+    document.querySelectorAll('[data-i18n-title]').forEach(function (el) {
+      el.title = t(el.dataset.i18nTitle);
+    });
+    document.querySelectorAll('[data-i18n-aria]').forEach(function (el) {
+      el.setAttribute('aria-label', t(el.dataset.i18nAria));
+    });
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(function (el) {
+      el.placeholder = t(el.dataset.i18nPlaceholder);
+    });
+    document.querySelectorAll('[data-lang]').forEach(function (btn) {
+      var on = btn.dataset.lang === state.lang;
+      btn.classList.toggle('is-on', on);
+      btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+    document.querySelectorAll('[data-sheet]').forEach(function (btn) {
+      var bits = btn.dataset.sheet.split('x');
+      btn.textContent = fmtMm(Number(bits[0])) + '×' + fmtMm(Number(bits[1]));
+    });
+    partList.querySelectorAll('.part-row').forEach(labelRow);
+    setTitle();
+  }
+
+  function labelRow(row) {
+    var name = row.querySelector('[data-field="name"]');
+    var w = row.querySelector('[data-field="w"]');
+    var h = row.querySelector('[data-field="h"]');
+    var qty = row.querySelector('[data-field="qty"]');
+    name.placeholder = t('phName');
+    name.setAttribute('aria-label', t('colName'));
+    w.placeholder = t('phW');
+    w.setAttribute('aria-label', t('colW'));
+    h.placeholder = t('phH');
+    h.setAttribute('aria-label', t('colH'));
+    qty.setAttribute('aria-label', t('colQty'));
+    row.querySelector('.sil').textContent = t('del');
+  }
+
+  function setLang(next) {
+    if ((next !== 'en' && next !== 'tr') || next === state.lang) return;
+    var prev = state.lang;
+    state.lang = next;
+    try { localStorage.setItem('sheet-lang', next); } catch (err) {}
+    reformatNumbers(prev);
+    applyCopy();
+    refresh();
+    if (state.result) {
+      showResult(state.result, false);
+      if (!state.dirty) setStatus(doneMessage(state.result));
+    } else {
+      renderGhost();
+    }
+  }
+
   function dxfMessage(parsed) {
-    if (parsed.error) return parsed.error;
-    var extra = parsed.skipped ? ' ' + parsed.skipped + ' şekil dikdörtgen değil. Eklenmedi.' : '';
-    if (!parsed.parts.length) return 'DXF içinde kapalı dikdörtgen yok.' + extra;
+    if (parsed.error === 'binary') return t('dxfBinary');
+    if (parsed.error) return t('dxfBad');
+    var extra = parsed.skipped ? ' ' + t('dxfSkip', { n: parsed.skipped }) : '';
+    if (!parsed.parts.length) return t('dxfNone') + extra;
     var total = 0;
     parsed.parts.forEach(function (part) { total += part.qty; });
-    var msg = total + ' parça geldi. ' + parsed.parts.length + ' çeşit.';
-    var word = {
-      in: 'inç',
-      ft: 'fit',
-      cm: 'cm',
-      m: 'm',
-      yd: 'yard',
-      um: 'mikron',
-      dm: 'dm',
-      dam: 'dam'
-    }[parsed.unit];
-    if (parsed.assumedUnit) msg += ' Birim mm kabul edildi.';
-    else if (word) msg += ' Birim ' + word + ', mm ye çevrildi.';
+    var msg = t('dxfGot', { n: total, m: parsed.parts.length });
+    var word = t('unit_' + parsed.unit);
+    if (parsed.assumedUnit) msg += ' ' + t('dxfAssume');
+    else if (parsed.unit && parsed.unit !== 'mm' && word !== 'unit_' + parsed.unit) {
+      msg += ' ' + t('dxfConverted', { unit: word });
+    }
     return msg + extra;
   }
 
   function setTitle() {
     var result = state.result;
-    if (!result || state.dirty || !result.sheets.length) document.title = 'Levha yerleşimi';
-    else document.title = result.sheets.length + ' levha · ' + fmtPct(result.yieldRatio) + ' · Levha yerleşimi';
+    if (!result || state.dirty || !result.sheets.length) document.title = t('title');
+    else document.title = t('titleResult', { n: result.sheets.length, pct: fmtPct(result.yieldRatio) });
   }
 
   function field(name, label, placeholder, mode) {
@@ -115,14 +439,14 @@
     var row = document.createElement('div');
     row.className = 'part-row';
     row.dataset.id = 'r' + state.rowSeq++;
-    row.appendChild(field('name', 'Ad', 'ad', 'text'));
-    row.appendChild(field('w', 'En', 'en', 'decimal'));
-    row.appendChild(field('h', 'Boy', 'boy', 'decimal'));
-    row.appendChild(field('qty', 'Adet', '1', 'numeric'));
+    row.appendChild(field('name', t('colName'), t('phName'), 'text'));
+    row.appendChild(field('w', t('colW'), t('phW'), 'decimal'));
+    row.appendChild(field('h', t('colH'), t('phH'), 'decimal'));
+    row.appendChild(field('qty', t('colQty'), '1', 'numeric'));
     var sil = document.createElement('button');
     sil.type = 'button';
     sil.className = 'sil';
-    sil.textContent = 'Sil';
+    sil.textContent = t('del');
     sil.addEventListener('click', function () { deleteRow(row); });
     row.appendChild(sil);
     if (values) {
@@ -158,26 +482,26 @@
         id: row.dataset.id,
         row: row,
         name: row.querySelector('[data-field="name"]').value,
-        width: SheetPacker.readNumber(row.querySelector('[data-field="w"]').value),
-        height: SheetPacker.readNumber(row.querySelector('[data-field="h"]').value),
-        qty: SheetPacker.readNumber(row.querySelector('[data-field="qty"]').value)
+        width: num(row.querySelector('[data-field="w"]').value),
+        height: num(row.querySelector('[data-field="h"]').value),
+        qty: num(row.querySelector('[data-field="qty"]').value)
       };
     });
   }
 
   function inspect() {
     document.querySelectorAll('.is-bad').forEach(function (el) { el.classList.remove('is-bad'); });
-    var width = SheetPacker.readNumber(sheetW.value);
-    var height = SheetPacker.readNumber(sheetH.value);
-    var kerf = SheetPacker.readNumber(kerfInput.value);
+    var width = num(sheetW.value);
+    var height = num(sheetH.value);
+    var kerf = num(kerfInput.value);
     var allowRotate = document.getElementById('rotate').checked;
     var mode = document.getElementById('modeGuillotine').checked ? 'guillotine' : 'free';
     var base = { allowRotate: allowRotate, mode: mode, parts: [], pieceCount: 0, sheetWidth: width, sheetHeight: height, kerf: kerf };
 
-    if (width == null || Number.isNaN(width) || width <= 0) return fail(base, 'Levha eni sıfırdan büyük bir sayı olmalı.', sheetW);
-    if (height == null || Number.isNaN(height) || height <= 0) return fail(base, 'Levha boyu sıfırdan büyük bir sayı olmalı.', sheetH);
-    if (width > 50000 || height > 50000) return fail(base, 'Levha ölçüsü 50 m altında olmalı.');
-    if (kerf == null || Number.isNaN(kerf) || kerf < 0) return fail(base, 'Bıçak payı sıfır veya daha büyük olmalı.', kerfInput);
+    if (width == null || Number.isNaN(width) || width <= 0) return fail(base, t('sheetWBad'), sheetW);
+    if (height == null || Number.isNaN(height) || height <= 0) return fail(base, t('sheetHBad'), sheetH);
+    if (width > 50000 || height > 50000) return fail(base, t('sheetLimit'));
+    if (kerf == null || Number.isNaN(kerf) || kerf < 0) return fail(base, t('kerfBad'), kerfInput);
 
     var parts = [];
     var pieceCount = 0;
@@ -186,18 +510,18 @@
       var row = rows[i];
       var empty = !row.name.trim() && row.width == null && row.height == null && row.qty == null;
       if (empty) continue;
-      if (row.width == null || Number.isNaN(row.width)) return fail(base, (i + 1) + '. satırda en sayı olmalı.', row.row.querySelector('[data-field="w"]'), parts, pieceCount);
-      if (row.height == null || Number.isNaN(row.height)) return fail(base, (i + 1) + '. satırda boy sayı olmalı.', row.row.querySelector('[data-field="h"]'), parts, pieceCount);
-      if (!(row.width > 0) || !(row.height > 0)) return fail(base, (i + 1) + '. satırda en ve boy sıfırdan büyük olmalı.', row.row.querySelector('[data-field="w"]'), parts, pieceCount);
-      if (row.width > 50000 || row.height > 50000) return fail(base, 'Parça ölçüsü 50 m altında olmalı.', null, parts, pieceCount);
+      if (row.width == null || Number.isNaN(row.width)) return fail(base, t('rowW', { n: i + 1 }), row.row.querySelector('[data-field="w"]'), parts, pieceCount);
+      if (row.height == null || Number.isNaN(row.height)) return fail(base, t('rowH', { n: i + 1 }), row.row.querySelector('[data-field="h"]'), parts, pieceCount);
+      if (!(row.width > 0) || !(row.height > 0)) return fail(base, t('rowPos', { n: i + 1 }), row.row.querySelector('[data-field="w"]'), parts, pieceCount);
+      if (row.width > 50000 || row.height > 50000) return fail(base, t('partLimit'), null, parts, pieceCount);
       var qty = row.qty == null ? 1 : row.qty;
-      if (Number.isNaN(qty) || qty <= 0 || !Number.isInteger(qty)) return fail(base, (i + 1) + '. satırda adet 1 veya daha büyük bir tam sayı olmalı.', row.row.querySelector('[data-field="qty"]'), parts, pieceCount);
-      if (qty > 500) return fail(base, 'Bir satırda en fazla 500 adet.', row.row.querySelector('[data-field="qty"]'), parts, pieceCount);
+      if (Number.isNaN(qty) || qty <= 0 || !Number.isInteger(qty)) return fail(base, t('rowQty', { n: i + 1 }), row.row.querySelector('[data-field="qty"]'), parts, pieceCount);
+      if (qty > 500) return fail(base, t('qtyCap'), row.row.querySelector('[data-field="qty"]'), parts, pieceCount);
       pieceCount += qty;
-      if (pieceCount > 1500) return fail(base, 'En fazla 1.500 parça. Adedi böl.', null, parts, pieceCount);
+      if (pieceCount > 1500) return fail(base, t('countCap'), null, parts, pieceCount);
       parts.push({ id: row.id, name: row.name.trim(), width: row.width, height: row.height, qty: qty });
     }
-    if (!parts.length) return fail(base, 'Parça ölçüsü gir.');
+    if (!parts.length) return fail(base, t('needParts'));
     return {
       ok: true,
       message: '',
@@ -249,8 +573,13 @@
       line.textContent = job.message;
       return;
     }
-    var cut = job.mode === 'guillotine' ? 'giyotin' : 'serbest';
-    line.textContent = fmtMm(job.sheetWidth) + '×' + fmtMm(job.sheetHeight) + ' mm · pay ' + fmtMm(job.kerf) + ' mm · ' + cut + ' · ' + job.pieceCount + ' parça';
+    var cut = job.mode === 'guillotine' ? t('modeGuillotineWord') : t('modeFreeWord');
+    line.textContent = t('runLine', {
+      sheet: fmtMm(job.sheetWidth) + '×' + fmtMm(job.sheetHeight),
+      kerf: fmtMm(job.kerf),
+      mode: cut,
+      n: job.pieceCount
+    });
   }
 
   function renderPartSummary(job) {
@@ -262,16 +591,16 @@
     var area = job.parts.reduce(function (sum, part) {
       return sum + part.width * part.height * part.qty;
     }, 0);
-    el.textContent = job.pieceCount + ' parça · ' + fmtArea(area);
+    el.textContent = t('summary', { n: job.pieceCount, area: fmtArea(area) });
   }
 
   function renderHint(job) {
     var kerf = job.kerf;
-    var gap = 'Bıçak payını gir.';
+    var gap = t('kerfMissing');
     if (typeof kerf === 'number' && !Number.isNaN(kerf) && kerf >= 0) {
-      gap = kerf === 0 ? 'Parçalar bitişik.' : 'Parçalar arasında ' + fmtMm(kerf) + ' mm boşluk kalır.';
+      gap = kerf === 0 ? t('flush') : t('gap', { kerf: fmtMm(kerf) });
     }
-    var cut = job.mode === 'guillotine' ? 'Kesim boydan boya gider.' : 'Serbest yerleşim fireyi azaltır.';
+    var cut = job.mode === 'guillotine' ? t('guillotineHint') : t('freeHint');
     document.getElementById('modeHint').textContent = gap + ' ' + cut;
   }
 
@@ -286,10 +615,10 @@
     var stale = document.getElementById('stale');
     if (state.result && state.dirty) {
       stale.hidden = false;
-      setStatus('Sonuç eski. Yeniden optimize et.');
+      setStatus(t('stale'));
     } else {
       stale.hidden = true;
-      if (!state.result) setStatus('Parçaları gir. Bıçak payını seç. Optimize et.');
+      if (!state.result) setStatus(t('statusIdle'));
     }
     setTitle();
     return job;
@@ -498,16 +827,16 @@
     document.getElementById('legend').replaceChildren();
     document.getElementById('cutlist').replaceChildren();
     document.getElementById('warning').replaceChildren();
-    var w = SheetPacker.readNumber(sheetW.value);
-    var h = SheetPacker.readNumber(sheetH.value);
+    var w = num(sheetW.value);
+    var h = num(sheetH.value);
     if (!(w > 0) || !(h > 0) || w > 50000 || h > 50000) {
       var empty = document.createElement('p');
       empty.className = 'empty';
-      empty.textContent = 'Levha ölçüsünü gir. Çizim burada durur.';
+      empty.textContent = t('ghostBad');
       host.appendChild(empty);
       return;
     }
-    var card = sheetCard('Levha', 'Parçalar optimize edilince buraya oturur.');
+    var card = sheetCard(t('sheet'), t('ghostWait'));
     card.appendChild(drawSheetSvg({
       sheetW: w,
       sheetH: h,
@@ -585,26 +914,28 @@
       shown += 1;
       var p = document.createElement('p');
       var size = fmtMm(item.width) + '×' + fmtMm(item.height) + ' mm';
-      var count = item.count > 1 ? ', ' + item.count + ' adet' : '';
-      if (item.fitsIfRotated) {
-        p.textContent = item.name + ' ' + size + count + ' sığmıyor. 90° döndür seçeneğini aç.';
-      } else {
-        p.textContent = item.name + ' ' + size + count + ' sığmıyor. Levha ' + fmtMm(result.sheetWidth) + '×' + fmtMm(result.sheetHeight) + ' mm. Parçayı böl veya levhayı büyüt.';
-      }
+      var count = item.count > 1 ? t('countSuffix', { n: item.count }) : '';
+      var vars = {
+        name: item.name,
+        size: size,
+        count: count,
+        sheet: fmtMm(result.sheetWidth) + '×' + fmtMm(result.sheetHeight) + ' mm'
+      };
+      p.textContent = item.fitsIfRotated ? t('rotateHint', vars) : t('noFit', vars);
       box.appendChild(p);
     });
     if (groups.size > shown) {
       var more = document.createElement('p');
-      more.textContent = 've ' + (groups.size - shown) + ' çeşit daha.';
+      more.textContent = t('moreTypes', { n: groups.size - shown });
       box.appendChild(more);
     }
     host.appendChild(box);
   }
 
   function doneMessage(result) {
-    if (result.unplaced.length && result.sheets.length) return 'Yerleşti. Sığmayan parça var.';
-    if (result.unplaced.length) return 'Sığmayan parça var.';
-    return 'Yerleşti';
+    if (result.unplaced.length && result.sheets.length) return t('placedSome');
+    if (result.unplaced.length) return t('noneFit');
+    return t('placed');
   }
 
   function renderSheets(result, animate) {
@@ -621,8 +952,12 @@
     result.sheets.forEach(function (sheet) {
       var pct = fmtPct(sheet.partArea / (result.sheetWidth * result.sheetHeight));
       var card = sheetCard(
-        'Levha ' + sheet.index,
-        fmtMm(result.sheetWidth) + '×' + fmtMm(result.sheetHeight) + ' mm · ' + sheet.placements.length + ' parça · ' + pct + ' · köşe sol üst'
+        t('sheetN', { n: sheet.index }),
+        t('sheetMeta', {
+          size: fmtMm(result.sheetWidth) + '×' + fmtMm(result.sheetHeight),
+          n: sheet.placements.length,
+          pct: pct
+        })
       );
       var placements = sheet.placements.map(function (piece) {
         var copy = Object.assign({}, piece);
@@ -642,7 +977,7 @@
     });
     if (!motion) return;
     var token = state.animToken;
-    setStatus('Yerleşiyor · 1/' + total);
+    setStatus(t('placing', { i: 1, n: total }));
     function finish() {
       if (token !== state.animToken || state.animDone === token) return;
       state.animDone = token;
@@ -659,7 +994,7 @@
       svg.addEventListener('animationstart', function (event) {
         if (token !== state.animToken) return;
         if (!event.target.classList || !event.target.classList.contains('piece')) return;
-        setStatus('Yerleşiyor · ' + (Number(event.target.dataset.i) + 1) + '/' + total);
+        setStatus(t('placing', { i: Number(event.target.dataset.i) + 1, n: total }));
       });
       svg.addEventListener('animationend', function (event) {
         if (event.target.dataset && event.target.dataset.i === String(total - 1)) finish();
@@ -695,7 +1030,7 @@
       swatch.style.setProperty('--fill', tone.fill);
       swatch.style.setProperty('--hatch', tone.hatch);
       li.appendChild(swatch);
-      li.appendChild(document.createTextNode(part.name + ' · ' + fmtMm(part.width) + '×' + fmtMm(part.height) + ' · ' + part.count + ' adet'));
+      li.appendChild(document.createTextNode(part.name + ' · ' + fmtMm(part.width) + '×' + fmtMm(part.height) + ' · ' + t('pcs', { n: part.count })));
       host.appendChild(li);
     });
   }
@@ -706,11 +1041,11 @@
     if (!result.sheets.length) return;
     var table = document.createElement('table');
     var caption = document.createElement('caption');
-    caption.textContent = 'Kesim listesi. X ve Y, levhanın sol üst köşesinden mm.';
+    caption.textContent = t('cutCaption');
     table.appendChild(caption);
     var thead = document.createElement('thead');
     var head = document.createElement('tr');
-    ['Levha', 'Parça', 'Ölçü', 'X', 'Y', 'Dönüş'].forEach(function (label, index) {
+    [t('cutSheet'), t('cutPart'), t('cutSize'), 'X', 'Y', t('cutTurn')].forEach(function (label, index) {
       var th = document.createElement('th');
       th.textContent = label;
       if (index >= 2 && index <= 4) th.className = 'num';
@@ -730,7 +1065,7 @@
           fmtMm(piece.width) + '×' + fmtMm(piece.height),
           fmtMm(piece.x),
           fmtMm(piece.y),
-          piece.rotated ? '90°' : '—'
+          piece.rotated ? '90°' : t('turnNo')
         ];
         values.forEach(function (value, index) {
           var td = document.createElement('td');
@@ -836,7 +1171,7 @@
     var figure = document.createElement('figure');
     figure.className = 'detail';
     var caption = document.createElement('figcaption');
-    caption.textContent = kerf === 0 ? 'Parçalar bitişik.' : 'Derz büyük çizildi. Levha ölçeklidir.';
+    caption.textContent = kerf === 0 ? t('flush') : t('detailGap');
     figure.append(svg, caption);
     host.appendChild(figure);
   }
@@ -873,7 +1208,7 @@
   }
 
   function cutText(result) {
-    var lines = ['Levha\tParça\tEn\tBoy\tX\tY\tDönüş'];
+    var lines = [t('tsvHead')];
     result.sheets.forEach(function (sheet) {
       sheet.placements.forEach(function (piece) {
         lines.push([
@@ -889,14 +1224,14 @@
     });
     if (result.unplaced.length) {
       lines.push('');
-      lines.push('Sığmayan');
+      lines.push(t('tsvMiss'));
       result.unplaced.forEach(function (piece) {
         lines.push([piece.name, xl(piece.width), xl(piece.height)].join('\t'));
       });
     }
     lines.push('');
-    lines.push('Levha ' + xl(result.sheetWidth) + ' x ' + xl(result.sheetHeight) + ' mm');
-    lines.push('Bıçak payı ' + xl(result.kerf) + ' mm');
+    lines.push(t('tsvSheet', { size: xl(result.sheetWidth) + ' x ' + xl(result.sheetHeight) }));
+    lines.push(t('tsvKerf', { kerf: xl(result.kerf) }));
     return lines.join('\n');
   }
 
@@ -933,7 +1268,7 @@
     });
     result.sheets.forEach(function (sheet, index) {
       var y0 = index * (block + gap);
-      body += '<text x="' + padL + '" y="' + (y0 + font + 6) + '" font-size="' + font + '" font-family="sans-serif">' + esc('Levha ' + sheet.index) + '</text>';
+      body += '<text x="' + padL + '" y="' + (y0 + font + 6) + '" font-size="' + font + '" font-family="sans-serif">' + esc(t('sheetN', { n: sheet.index })) + '</text>';
       body += '<rect x="' + padL + '" y="' + (y0 + padT) + '" width="' + result.sheetWidth + '" height="' + result.sheetHeight + '" fill="#d5d9de" stroke="#1c1a17" stroke-width="1"/>';
       sheet.placements.forEach(function (piece) {
         body += '<rect x="' + (padL + piece.x) + '" y="' + (y0 + padT + piece.y) + '" width="' + piece.width + '" height="' + piece.height + '" fill="url(#e' + esc(piece.partId) + ')" stroke="#1c1a17" stroke-width="0.6"/>';
@@ -944,7 +1279,7 @@
         }
       });
     });
-    var note = 'Bıçak payı ' + fmtMm(result.kerf) + ' mm. Ölçüler mm. Köşe sol üst.';
+    var note = t('svgNote', { kerf: fmtMm(result.kerf) });
     body += '<text x="' + padL + '" y="' + (height - 10) + '" font-size="' + Math.max(10, font * 0.55) + '" font-family="sans-serif">' + esc(note) + '</text>';
     return '<?xml version="1.0" encoding="UTF-8"?>' +
       '<svg xmlns="http://www.w3.org/2000/svg" width="' + width + 'mm" height="' + height + 'mm" viewBox="0 0 ' + width + ' ' + height + '">' +
@@ -955,7 +1290,7 @@
     var blob = new Blob([svgDocument(result)], { type: 'image/svg+xml' });
     var link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = 'levha-yerlesim.svg';
+    link.download = t('svgFile');
     document.body.appendChild(link);
     link.click();
     link.remove();
@@ -978,9 +1313,12 @@
       ok = document.execCommand('copy');
       area.remove();
     }
-    var previous = button.textContent;
-    button.textContent = ok ? 'Kopyalandı' : 'Kopyalanamadı';
-    setTimeout(function () { button.textContent = previous; }, 1400);
+    button.textContent = ok ? t('copied') : t('copyFail');
+    setTimeout(function () {
+      var label = button.querySelector('[data-i18n]');
+      if (label) label.textContent = t('copyList');
+      else button.textContent = t('copyList');
+    }, 1400);
   }
 
   async function optimize() {
@@ -988,7 +1326,7 @@
     if (!job.ok) return;
     var button = document.getElementById('optimize');
     button.disabled = true;
-    setStatus('Hesaplanıyor');
+    setStatus(t('calculating'));
     await new Promise(function (resolve) { setTimeout(resolve, 40); });
     var result;
     try {
@@ -1001,7 +1339,7 @@
         parts: job.parts
       });
     } catch (err) {
-      setStatus('Yerleşim hesaplanamadı.');
+      setStatus(t('packFail'));
       button.disabled = !inspect().ok;
       return;
     }
@@ -1037,14 +1375,17 @@
       var next = row.nextElementSibling || addRow();
       next.querySelector('[data-field="w"]').focus();
     });
+    document.querySelectorAll('[data-lang]').forEach(function (btn) {
+      btn.addEventListener('click', function () { setLang(btn.dataset.lang); });
+    });
     document.getElementById('addRow').addEventListener('click', function () {
       var row = addRow();
       row.querySelector('[data-field="w"]').focus();
     });
     document.getElementById('pasteAdd').addEventListener('click', function () {
-      var parsed = SheetPacker.parsePartList(document.getElementById('pasteBox').value);
+      var parsed = SheetPacker.parsePartList(document.getElementById('pasteBox').value, state.lang);
       if (!parsed.parts.length) {
-        setStatus(parsed.errors.length ? parsed.errors[0].line + '. satır okunmadı.' : 'Satır okunmadı.');
+        setStatus(parsed.errors.length ? t('lineBad', { n: parsed.errors[0].line }) : t('lineNone'));
         return;
       }
       var rows = Array.prototype.slice.call(partList.querySelectorAll('.part-row'));
@@ -1052,8 +1393,8 @@
       parsed.parts.forEach(addRow);
       document.getElementById('pasteBox').value = '';
       onEdit('part');
-      if (parsed.errors.length) setStatus(parsed.errors[0].line + '. satır okunmadı. Diğer satırlar eklendi.');
-      else setStatus(parsed.parts.length + ' çeşit eklendi.');
+      if (parsed.errors.length) setStatus(t('lineSome', { n: parsed.errors[0].line }));
+      else setStatus(t('lineAdded', { n: parsed.parts.length }));
     });
     document.getElementById('openDxf').addEventListener('click', function () {
       var input = document.getElementById('dxfFile');
@@ -1070,7 +1411,7 @@
         try {
           parsed = DxfParts.parseDxf(String(reader.result || ''));
         } catch (err) {
-          setStatus('DXF okunamadı.');
+          setStatus(t('dxfBad'));
           return;
         }
         if (parsed.error || !parsed.parts.length) {
@@ -1083,14 +1424,14 @@
         onEdit('part');
         setStatus(dxfMessage(parsed));
       };
-      reader.onerror = function () { setStatus('DXF okunamadı.'); };
+      reader.onerror = function () { setStatus(t('dxfBad')); };
       reader.readAsText(file);
     });
     document.querySelectorAll('[data-sheet]').forEach(function (btn) {
       btn.addEventListener('click', function () {
         var bits = btn.dataset.sheet.split('x');
-        sheetW.value = bits[0];
-        sheetH.value = bits[1];
+        sheetW.value = fmtMm(Number(bits[0]));
+        sheetH.value = fmtMm(Number(bits[1]));
         onEdit('sheet');
       });
     });
@@ -1166,6 +1507,8 @@
   addRow();
   addRow();
   bind();
+  reformatNumbers(state.lang);
+  applyCopy();
   refresh();
   renderGhost();
   var firstWidth = partList.querySelector('[data-field="w"]');

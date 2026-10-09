@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Levha yerleşimi</title>
+  <title>Sheet nesting</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -11,61 +11,67 @@
     <aside class="panel">
       <div class="panel-body">
         <header class="lockup">
-          <h1>Levha yerleşimi</h1>
-          <p class="lede">Dikdörtgen parçaları, aralarında bıçak payı bırakarak levhaya dizer.</p>
+          <div class="lockup-row">
+            <h1 data-i18n="title">Sheet nesting</h1>
+            <div class="lang" role="group" aria-label="Language">
+              <button type="button" class="chip is-on" data-lang="en" aria-pressed="true">EN</button>
+              <button type="button" class="chip" data-lang="tr" aria-pressed="false">TR</button>
+            </div>
+          </div>
+          <p class="lede" data-i18n="lede">Places rectangular parts on a sheet, with a kerf gap between them.</p>
         </header>
 
         <section>
           <div class="section-head">
-            <h2><span>1</span> Levha</h2>
+            <h2><span>1</span> <span data-i18n="sheet">Sheet</span></h2>
           </div>
           <div class="pair">
-            <label class="field">En (mm)
+            <label class="field"><span data-i18n="sheetW">Width (mm)</span>
               <input id="sheetW" value="1500" inputmode="decimal" autocomplete="off" spellcheck="false">
             </label>
-            <label class="field">Boy (mm)
+            <label class="field"><span data-i18n="sheetH">Height (mm)</span>
               <input id="sheetH" value="3000" inputmode="decimal" autocomplete="off" spellcheck="false">
             </label>
           </div>
           <div class="chips" id="sheetChips">
-            <button type="button" class="chip" data-sheet="1000x2000">1.000×2.000</button>
-            <button type="button" class="chip" data-sheet="1250x2500">1.250×2.500</button>
-            <button type="button" class="chip is-on" data-sheet="1500x3000">1.500×3.000</button>
-            <button type="button" class="chip" data-sheet="2000x4000">2.000×4.000</button>
+            <button type="button" class="chip" data-sheet="1000x2000">1,000×2,000</button>
+            <button type="button" class="chip" data-sheet="1250x2500">1,250×2,500</button>
+            <button type="button" class="chip is-on" data-sheet="1500x3000">1,500×3,000</button>
+            <button type="button" class="chip" data-sheet="2000x4000">2,000×4,000</button>
           </div>
         </section>
 
         <section>
           <div class="section-head">
-            <h2><span>2</span> Parçalar</h2>
+            <h2><span>2</span> <span data-i18n="parts">Parts</span></h2>
             <p id="partSummary"></p>
           </div>
           <div class="part-head">
-            <span>Ad</span>
-            <span>En</span>
-            <span>Boy</span>
-            <span>Adet</span>
+            <span data-i18n="colName">Name</span>
+            <span data-i18n="colW">W</span>
+            <span data-i18n="colH">H</span>
+            <span data-i18n="colQty">Qty</span>
             <span></span>
           </div>
           <div id="partList"></div>
           <div class="row-actions">
-            <button type="button" id="addRow" class="quiet">Satır ekle</button>
-            <button type="button" id="openDxf" class="quiet" title="Kapalı dikdörtgen konturları okur.">DXF aç</button>
+            <button type="button" id="addRow" class="quiet" data-i18n="addRow">Add row</button>
+            <button type="button" id="openDxf" class="quiet" data-i18n="openDxf" data-i18n-title="dxfTitle" title="Reads closed rectangular outlines.">Open DXF</button>
             <input id="dxfFile" type="file" accept=".dxf" hidden>
             <details>
-              <summary>Liste yapıştır</summary>
-              <p class="hint">Her satır bir çeşittir.</p>
-              <textarea id="pasteBox" rows="4" spellcheck="false" placeholder="150 300&#10;150x300x4&#10;Kapak 820 2100 2"></textarea>
-              <button type="button" id="pasteAdd" class="quiet">Ekle</button>
+              <summary data-i18n="pasteSummary">Paste a list</summary>
+              <p class="hint" data-i18n="pasteHint">One part per line.</p>
+              <textarea id="pasteBox" rows="4" spellcheck="false" data-i18n-placeholder="pastePh" placeholder="150 300&#10;150x300x4&#10;Cover 820 2100 2"></textarea>
+              <button type="button" id="pasteAdd" class="quiet" data-i18n="pasteAdd">Add</button>
             </details>
           </div>
         </section>
       </div>
 
       <footer class="foot">
-        <h2><span>3</span> Bıçak payı</h2>
+        <h2><span>3</span> <span data-i18n="kerfHead">Kerf</span></h2>
         <div class="kerf-line">
-          <input id="kerf" value="3" inputmode="decimal" autocomplete="off" spellcheck="false" aria-label="Bıçak payı, mm">
+          <input id="kerf" value="3" inputmode="decimal" autocomplete="off" spellcheck="false" data-i18n-aria="kerfAria" aria-label="Kerf, mm">
           <span>mm</span>
           <div class="chips" id="kerfChips">
             <button type="button" class="chip" data-kerf="0">0</button>
@@ -76,13 +82,13 @@
           </div>
         </div>
         <div class="choice">
-          <label><input id="rotate" type="checkbox" checked> 90° döndür</label>
-          <label><input type="radio" name="mode" id="modeFree" value="free" checked> Serbest</label>
-          <label><input type="radio" name="mode" id="modeGuillotine" value="guillotine"> Giyotin</label>
+          <label><input id="rotate" type="checkbox" checked> <span data-i18n="rotate">Allow 90°</span></label>
+          <label><input type="radio" name="mode" id="modeFree" value="free" checked> <span data-i18n="modeFree">Free</span></label>
+          <label><input type="radio" name="mode" id="modeGuillotine" value="guillotine"> <span data-i18n="modeGuillotine">Guillotine</span></label>
         </div>
         <p class="hint" id="modeHint"></p>
         <p class="runline" id="runline"></p>
-        <button type="button" id="optimize" class="optimize">Optimize et <kbd>⌘↩</kbd></button>
+        <button type="button" id="optimize" class="optimize"><span data-i18n="optimize">Optimize</span> <kbd>⌘↩</kbd></button>
       </footer>
     </aside>
 
@@ -90,27 +96,27 @@
       <div class="stage-top">
         <div>
           <div class="stats">
-            <div class="stat"><b id="statSheets">—</b><span>Levha</span></div>
-            <div class="stat"><b id="statYield">—</b><span>Verim</span></div>
-            <div class="stat"><b id="statWaste">—</b><span>Fire</span></div>
+            <div class="stat"><b id="statSheets">—</b><span data-i18n="statSheets">Sheets</span></div>
+            <div class="stat"><b id="statYield">—</b><span data-i18n="statYield">Yield</span></div>
+            <div class="stat"><b id="statWaste">—</b><span data-i18n="statWaste">Offcut</span></div>
           </div>
-          <p class="fine">Az levha hedeflenir. Sonuç kesin en iyi olmayabilir.</p>
-          <p class="status" id="status" role="status">Parçaları gir. Bıçak payını seç. Optimize et.</p>
+          <p class="fine" data-i18n="fine">Fewer sheets is the aim. The result may not be the best possible.</p>
+          <p class="status" id="status" role="status" data-i18n="statusIdle">Enter the parts. Choose the kerf. Optimize.</p>
         </div>
         <div class="stage-side">
           <div id="detail"></div>
           <div class="tools">
-            <button type="button" id="zoomOut" aria-label="Küçült">−</button>
-            <button type="button" id="zoomFit">Sığdır</button>
-            <button type="button" id="zoomIn" aria-label="Büyüt">+</button>
-            <button type="button" id="replay" hidden>Oynat</button>
-            <button type="button" id="printBtn" hidden>Yazdır</button>
-            <button type="button" id="saveSvg" hidden>SVG indir</button>
-            <button type="button" id="copyList" hidden>Excel'e kopyala</button>
+            <button type="button" id="zoomOut" data-i18n-aria="zoomOut" aria-label="Zoom out">−</button>
+            <button type="button" id="zoomFit" data-i18n="zoomFit">Fit</button>
+            <button type="button" id="zoomIn" data-i18n-aria="zoomIn" aria-label="Zoom in">+</button>
+            <button type="button" id="replay" data-i18n="replay" hidden>Replay</button>
+            <button type="button" id="printBtn" data-i18n="print" hidden>Print</button>
+            <button type="button" id="saveSvg" data-i18n="saveSvg" hidden>Download SVG</button>
+            <button type="button" id="copyList" data-i18n="copyList" hidden>Copy for Excel</button>
           </div>
         </div>
       </div>
-      <p class="stale" id="stale" hidden>Sonuç eski. Yeniden optimize et.</p>
+      <p class="stale" id="stale" data-i18n="stale" hidden>Result is old. Optimize again.</p>
       <div id="warning"></div>
       <div id="sheets"></div>
       <ul class="legend" id="legend"></ul>

@@ -46,10 +46,23 @@ h1 {
 
 h2 { font-size: 15px; font-weight: 600; }
 
-h2 span {
+h2 > span:first-child {
   color: var(--muted);
   font-weight: 500;
   margin-right: 6px;
+}
+
+.lockup-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.lang {
+  display: flex;
+  flex: none;
+  gap: 6px;
 }
 
 .shell {

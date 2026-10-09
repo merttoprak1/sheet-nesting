@@ -202,8 +202,8 @@ test('INSERT rotation 90 swaps the spans', () => {
 });
 
 test('binary DXF is refused', () => {
-  assert.equal(parseDxf('AutoCAD Binary DXF\r\n\u001a').error, 'Bu DXF ikili. ASCII olarak kaydet.');
-  assert.equal(parseDxf('\0nope').error, 'Bu DXF ikili. ASCII olarak kaydet.');
+  assert.equal(parseDxf('AutoCAD Binary DXF\r\n\u001a').error, 'binary');
+  assert.equal(parseDxf('\0nope').error, 'binary');
 });
 
 test('a bulge is skipped', () => {

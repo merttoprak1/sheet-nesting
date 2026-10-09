@@ -89,6 +89,10 @@ test('readNumber accepts Turkish marks', () => {
   assert.equal(readNumber('1.5'), 1.5);
   assert.equal(readNumber(''), null);
   assert.ok(Number.isNaN(readNumber('abc')));
+  assert.equal(readNumber('1,500', 'en'), 1500);
+  assert.equal(readNumber('1,500.25', 'en'), 1500.25);
+  assert.equal(readNumber('1.5', 'en'), 1.5);
+  assert.equal(readNumber('1,5', 'en'), 1.5);
 });
 
 test('parsePartList reads shop lines', () => {

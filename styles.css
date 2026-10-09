@@ -330,11 +330,18 @@ textarea {
 
 .warning p + p { margin-top: 4px; }
 
+#sheets {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 16px;
+}
+
 .sheet-card {
   background: var(--card);
   border: 1px solid var(--line);
   padding: 14px 14px 10px;
-  margin: 0 0 16px;
+  margin: 0;
   width: max-content;
 }
 

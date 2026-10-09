@@ -410,10 +410,10 @@
       var binIndex = -1;
       for (var b = 0; b < bins.length; b++) {
         var spot = search(bins[b], item, runCtx);
-        if (spot && (!chosen || prefer(spot, chosen, runCtx.heuristic))) {
-          chosen = spot;
-          binIndex = b;
-        }
+        if (!spot) continue;
+        chosen = spot;
+        binIndex = b;
+        break;
       }
       if (!chosen) {
         var bin = create(runCtx);
@@ -456,19 +456,21 @@
     return sheets;
   }
 
-  function bboxSum(sheets) {
-    var sum = 0;
-    for (var i = 0; i < sheets.length; i++) {
-      var maxX = 0;
-      var maxY = 0;
-      var list = sheets[i].placements;
-      for (var p = 0; p < list.length; p++) {
-        maxX = Math.max(maxX, list[p].x + list[p].width);
-        maxY = Math.max(maxY, list[p].y + list[p].height);
-      }
-      sum += maxX * maxY;
+  function usedBox(sheet) {
+    var maxX = 0;
+    var maxY = 0;
+    var list = sheet ? sheet.placements : [];
+    for (var i = 0; i < list.length; i++) {
+      maxX = Math.max(maxX, list[i].x + list[i].width);
+      maxY = Math.max(maxY, list[i].y + list[i].height);
     }
-    return sum;
+    return maxX * maxY;
+  }
+
+  function earlyArea(sheets) {
+    var area = 0;
+    for (var i = 0; i < sheets.length - 1; i++) area += sheets[i].partArea;
+    return area;
   }
 
   function turnCount(sheets) {
@@ -484,7 +486,8 @@
   function isBetter(a, b) {
     if (a.unplaced.length !== b.unplaced.length) return a.unplaced.length < b.unplaced.length;
     if (a.sheets.length !== b.sheets.length) return a.sheets.length < b.sheets.length;
-    if (Math.abs(a.bbox - b.bbox) > 1e-6) return a.bbox < b.bbox;
+    if (a.early !== b.early) return a.early > b.early;
+    if (Math.abs(a.lastBox - b.lastBox) > 1e-6) return a.lastBox < b.lastBox;
     return a.turns < b.turns;
   }
 
@@ -593,7 +596,8 @@
           var candidate = {
             sheets: sheets,
             unplaced: run.unplaced,
-            bbox: bboxSum(sheets),
+            early: earlyArea(sheets),
+            lastBox: usedBox(sheets[sheets.length - 1]),
             turns: turnCount(sheets),
             method: strategies[s].kind + '-' + strategies[s].heuristic + (strategies[s].rule ? '-' + strategies[s].rule : '')
           };

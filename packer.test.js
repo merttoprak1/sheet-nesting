@@ -272,6 +272,31 @@ test('guillotine puts a small piece beside its neighbour', () => {
   }
 });
 
+test('a piece that fits stays on the earlier sheet', () => {
+  const parts = [
+    { id: '1', width: 234, height: 45, qty: 1 },
+    { id: '2', width: 214, height: 51, qty: 1 },
+    { id: '3', width: 23, height: 56, qty: 1 },
+    { id: '4', width: 234, height: 40, qty: 1 },
+    { id: '5', width: 130, height: 40, qty: 1 }
+  ];
+  const result = pack({
+    sheetWidth: 150,
+    sheetHeight: 300,
+    kerf: 3,
+    allowRotate: true,
+    mode: 'guillotine',
+    parts
+  });
+  assertValid(result);
+  assert.equal(result.sheets.length, 2);
+  assert.equal(isGuillotine(result.sheets[0].placements, 0, 0, 150, 300), true);
+  assert.equal(isGuillotine(result.sheets[1].placements, 0, 0, 150, 300), true);
+  const wide = result.sheets[0].placements.find((p) => p.width === 130 || p.height === 130);
+  assert.ok(wide, 'wide piece stays on the first sheet');
+  assert.ok(result.sheets[0].partArea > result.sheets[1].partArea);
+});
+
 test('yield is part area divided by the full sheets', () => {
   const parts = [
     { id: '1', width: 300, height: 150, qty: 1 },

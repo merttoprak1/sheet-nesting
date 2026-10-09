@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Levha yerleşimi</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="shell">
+    <aside class="panel">
+      <div class="panel-body">
+        <header class="lockup">
+          <h1>Levha yerleşimi</h1>
+          <p class="lede">Dikdörtgen parçaları, aralarında bıçak payı bırakarak levhaya dizer.</p>
+        </header>
+
+        <section>
+          <div class="section-head">
+            <h2><span>1</span> Levha</h2>
+          </div>
+          <div class="pair">
+            <label class="field">En (mm)
+              <input id="sheetW" value="1500" inputmode="decimal" autocomplete="off" spellcheck="false">
+            </label>
+            <label class="field">Boy (mm)
+              <input id="sheetH" value="3000" inputmode="decimal" autocomplete="off" spellcheck="false">
+            </label>
+          </div>
+          <div class="chips" id="sheetChips">
+            <button type="button" class="chip" data-sheet="1000x2000">1.000×2.000</button>
+            <button type="button" class="chip" data-sheet="1250x2500">1.250×2.500</button>
+            <button type="button" class="chip is-on" data-sheet="1500x3000">1.500×3.000</button>
+            <button type="button" class="chip" data-sheet="2000x4000">2.000×4.000</button>
+          </div>
+        </section>
+
+        <section>
+          <div class="section-head">
+            <h2><span>2</span> Parçalar</h2>
+            <p id="partSummary"></p>
+          </div>
+          <div class="part-head">
+            <span>Ad</span>
+            <span>En</span>
+            <span>Boy</span>
+            <span>Adet</span>
+            <span></span>
+          </div>
+          <div id="partList"></div>
+          <div class="row-actions">
+            <button type="button" id="addRow" class="quiet">Satır ekle</button>
+            <button type="button" id="openDxf" class="quiet" title="Kapalı dikdörtgen konturları okur.">DXF aç</button>
+            <input id="dxfFile" type="file" accept=".dxf" hidden>
+            <details>
+              <summary>Liste yapıştır</summary>
+              <p class="hint">Her satır bir çeşittir.</p>
+              <textarea id="pasteBox" rows="4" spellcheck="false" placeholder="150 300&#10;150x300x4&#10;Kapak 820 2100 2"></textarea>
+              <button type="button" id="pasteAdd" class="quiet">Ekle</button>
+            </details>
+          </div>
+        </section>
+      </div>
+
+      <footer class="foot">
+        <h2><span>3</span> Bıçak payı</h2>
+        <div class="kerf-line">
+          <input id="kerf" value="3" inputmode="decimal" autocomplete="off" spellcheck="false" aria-label="Bıçak payı, mm">
+          <span>mm</span>
+          <div class="chips" id="kerfChips">
+            <button type="button" class="chip" data-kerf="0">0</button>
+            <button type="button" class="chip" data-kerf="2">2</button>
+            <button type="button" class="chip is-on" data-kerf="3">3</button>
+            <button type="button" class="chip" data-kerf="4">4</button>
+            <button type="button" class="chip" data-kerf="5">5</button>
+          </div>
+        </div>
+        <div class="choice">
+          <label><input id="rotate" type="checkbox" checked> 90° döndür</label>
+          <label><input type="radio" name="mode" id="modeFree" value="free" checked> Serbest</label>
+          <label><input type="radio" name="mode" id="modeGuillotine" value="guillotine"> Giyotin</label>
+        </div>
+        <p class="hint" id="modeHint"></p>
+        <p class="runline" id="runline"></p>
+        <button type="button" id="optimize" class="optimize">Optimize et <kbd>⌘↩</kbd></button>
+      </footer>
+    </aside>
+
+    <main class="stage" id="stage">
+      <div class="stage-top">
+        <div>
+          <div class="stats">
+            <div class="stat"><b id="statSheets">—</b><span>Levha</span></div>
+            <div class="stat"><b id="statYield">—</b><span>Verim</span></div>
+            <div class="stat"><b id="statWaste">—</b><span>Fire</span></div>
+          </div>
+          <p class="fine">Az levha hedeflenir. Sonuç kesin en iyi olmayabilir.</p>
+          <p class="status" id="status" role="status">Parçaları gir. Bıçak payını seç. Optimize et.</p>
+        </div>
+        <div class="stage-side">
+          <div id="detail"></div>
+          <div class="tools">
+            <button type="button" id="zoomOut" aria-label="Küçült">−</button>
+            <button type="button" id="zoomFit">Sığdır</button>
+            <button type="button" id="zoomIn" aria-label="Büyüt">+</button>
+            <button type="button" id="replay" hidden>Oynat</button>
+            <button type="button" id="printBtn" hidden>Yazdır</button>
+            <button type="button" id="saveSvg" hidden>SVG indir</button>
+            <button type="button" id="copyList" hidden>Excel'e kopyala</button>
+          </div>
+        </div>
+      </div>
+      <p class="stale" id="stale" hidden>Sonuç eski. Yeniden optimize et.</p>
+      <div id="warning"></div>
+      <div id="sheets"></div>
+      <ul class="legend" id="legend"></ul>
+      <div id="cutlist"></div>
+    </main>
+  </div>
+  <script src="packer.js"></script>
+  <script src="dxf.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -272,6 +272,28 @@ test('guillotine puts a small piece beside its neighbour', () => {
   }
 });
 
+test('yield is part area divided by the full sheets', () => {
+  const parts = [
+    { id: '1', width: 300, height: 150, qty: 1 },
+    { id: '2', width: 265, height: 50, qty: 1 },
+    { id: '3', width: 30, height: 50, qty: 1 },
+    { id: '4', width: 50, height: 85, qty: 1 },
+    { id: '5', width: 180, height: 70, qty: 1 }
+  ];
+  const result = pack({
+    sheetWidth: 1000,
+    sheetHeight: 2000,
+    kerf: 3,
+    allowRotate: true,
+    mode: 'guillotine',
+    parts
+  });
+  assert.equal(result.placedArea, 76600);
+  assert.equal(result.sheetArea, 2000000);
+  assert.equal(result.yieldRatio, 76600 / 2000000);
+  assert.equal(result.wasteArea, 2000000 - 76600);
+});
+
 test('mixed strips on a plate stay valid in both modes', () => {
   const heights = [111, 265, 157, 50, 180, 213, 261, 420, 151, 148, 146, 153, 224, 219, 197, 196, 267, 119, 90, 161, 281, 202, 248, 245, 299];
   const parts = heights.map((height, i) => ({ id: 's' + i, width: 150, height, qty: 1 }));

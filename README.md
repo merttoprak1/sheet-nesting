@@ -2,6 +2,8 @@
 
 Nest rectangular parts on a sheet. A kerf gap stays between the parts.
 
+![Sheet nesting. Seven parts placed on an 800 by 600 mm sheet, with a 3 mm kerf.](images/ui.png)
+
 Open the app: https://merttoprak1.github.io/sheet-nesting/
 
 You can also open `index.html` in a browser. No install.
